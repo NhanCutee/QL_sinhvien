@@ -31,9 +31,21 @@ function SubjectDetail() {
     console.log('Edit student:', studentId);
   };
 
-  const handleDelete = (studentId) => {
-    // Xử lý sự kiện xóa sinh viên với id là studentId
-    console.log('Delete student:', studentId);
+  const handleDelete = async (studentId) => {
+    try {
+      const response = await fetch(`https://xdwebserver.onrender.com/sinhvien/delete/${studentId}`, {
+        method: 'POST',
+      });
+      if (response.ok) {
+        console.log(`Deleted student with ID: ${studentId}`);
+        // Sau khi xóa thành công, cần cập nhật lại danh sách sinh viên
+        setStudents(prevStudents => prevStudents.filter(student => student.mssv !== studentId));
+      } else {
+        console.error('Có lỗi xảy ra khi xóa sinh viên.');
+      }
+    } catch (error) {
+      console.error('Đã có lỗi xảy ra:', error);
+    }
   }; 
   
   if (students.length === 0) {
