@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useParams } from 'react-router-dom';
 import { Container, Grid, Paper, Typography, Select, MenuItem, List, ListItem, ListItemText, Button } from '@mui/material';
-import { read, utils } from 'xlsx'; 
+import * as XLSX from 'xlsx';
+// eslint-disable-next-line
+const { read, utils } = XLSX;
+
+
 
 function SubjectDetail() {
   const [students, setStudents] = useState([]);
@@ -38,7 +42,6 @@ function SubjectDetail() {
       });
       if (response.ok) {
         console.log(`Deleted student with ID: ${studentId}`);
-        // Sau khi xóa thành công, cần cập nhật lại danh sách sinh viên
         setStudents(prevStudents => prevStudents.filter(student => student.mssv !== studentId));
       } else {
         console.error('Có lỗi xảy ra khi xóa sinh viên.');
@@ -91,20 +94,18 @@ function App() {
   const handleUpload = () => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-
-    // Xử lý sự kiện khi người dùng chọn file
     fileInput.onchange = async (event) => {
       const file = event.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = async (e) => {
           const data = new Uint8Array(e.target.result);
-          const workbook = read(data, { type: 'array' });
+          console.log('Dữ liệu từ file đã được đọc thành công.'); 
+          const workbook = XLSX.read(data, { type: 'array' }); 
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-          const jsonData = utils.sheet_to_json(worksheet);
-
-          // Gửi dữ liệu JSON qua API
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+  
           try {
             const response = await fetch('https://xdwebserver.onrender.com/sinhvien', {
               method: 'POST',
@@ -119,7 +120,7 @@ function App() {
               console.error('Có lỗi xảy ra khi gửi dữ liệu.');
             }
           } catch (error) {
-            console.error('Đã có lỗi xảy ra:', error);
+            console.error('Đã có lỗi xảy ra khi gửi dữ liệu:', error);
           }
         };
         reader.readAsArrayBuffer(file);
@@ -127,12 +128,10 @@ function App() {
         alert('Không có file được chọn.');
       }
     };
-
-
-    // Mô phỏng sự kiện click vào thẻ input
+  
     fileInput.click();
   };
-
+  
   return (
     <Router>
       <Container maxWidth="lg" style={{ marginTop: 20 }}>
