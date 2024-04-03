@@ -97,6 +97,9 @@ function App() {
     fileInput.onchange = async (event) => {
       const file = event.target.files[0];
       if (file) {
+        const formData = new FormData(); // Tạo đối tượng FormData
+        formData.append('file', file); // Thêm file vào FormData
+  
         const reader = new FileReader();
         reader.onload = async (e) => {
           const data = new Uint8Array(e.target.result);
@@ -105,22 +108,28 @@ function App() {
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          console.log('Dữ liệu sinh viên từ file Excel:', jsonData);
+  
+          // Thêm dữ liệu sinh viên vào FormData dưới dạng chuỗi JSON
+          formData.append('students', JSON.stringify(jsonData));
   
           try {
-            const response = await fetch('https://xdwebserver.onrender.com/sinhvien', {
+            console.log('Dữ liệu và file được gửi đi:', formData); // In ra log dữ liệu và file được gửi đi
+            const response = await fetch('https://xdwebserver.onrender.com/uploadfile', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(jsonData)
+              body: formData // Truyền FormData vào body của request
             });
             if (response.ok) {
-              console.log('Dữ liệu đã được gửi thành công.');
+              // In ra response từ máy chủ
+              const responseData = await response.text();
+              console.log('Response từ máy chủ:', responseData);
             } else {
-              console.error('Có lỗi xảy ra khi gửi dữ liệu.');
+              // In ra thông báo lỗi nếu response status không ok
+              const errorResponse = await response.text();
+              console.error('Có lỗi xảy ra khi gửi dữ liệu và file:', errorResponse);
             }
           } catch (error) {
-            console.error('Đã có lỗi xảy ra khi gửi dữ liệu:', error);
+            console.error('Đã có lỗi xảy ra khi gửi dữ liệu và file:', error);
           }
         };
         reader.readAsArrayBuffer(file);
@@ -128,9 +137,14 @@ function App() {
         alert('Không có file được chọn.');
       }
     };
-  
+    fetchData();
     fileInput.click();
   };
+  
+  
+  
+  
+  
   
   return (
     <Router>
